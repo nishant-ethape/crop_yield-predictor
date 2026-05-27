@@ -196,3 +196,15 @@ FastAPI docs → http://localhost:8000/docs
 
 \- Docker containerization for easier deployment
 
+
+
+## 📦 Model Files
+pkl files are not included in this repo due to size.
+
+Download and place all three in the root project directory:
+## 📦 Model Files
+pkl files are not included in this repo due to size.
+
+Download and place all three in the root project directory:
+https://drive.google.com/drive/folders/1POBBaUNGp9YO6H3csK8edKt3uq95U2O3?usp=drive_link
+
