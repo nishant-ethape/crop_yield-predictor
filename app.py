@@ -1,6 +1,7 @@
+import pandas as pd
+import numpy as np
 import streamlit as st
-import requests
-from predictor import valid_crops, valid_states
+import pickle
 
 # Page config
 st.set_page_config(
@@ -104,7 +105,7 @@ st.markdown("""
     }
 
     .tip-box {
-        background: #ffd54e;
+        background: #fff9e6;
         border: 1px solid #f39c12;
         border-radius: 12px;
         padding: 1rem 1.2rem;
@@ -112,6 +113,14 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+# Load models
+with open('crop_encoding.pkl', 'rb') as f:
+    crop_encoding = pickle.load(f)
+with open('state_encoding.pkl', 'rb') as f:
+    state_encoding = pickle.load(f)
+with open('yield_model.pkl', 'rb') as f:
+    yield_model = pickle.load(f)
 
 # Hero section
 st.markdown("""
@@ -128,8 +137,8 @@ with col1:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">🌱 Crop Details | पीक माहिती</div>', unsafe_allow_html=True)
 
-    crop = st.selectbox("Select Crop | पीक निवडा", valid_crops)
-    state = st.selectbox("Select State | राज्य निवडा", valid_states)
+    crop = st.selectbox("Select Crop | पीक निवडा", list(crop_encoding.index))
+    state = st.selectbox("Select State | राज्य निवडा", list(state_encoding.index))
     
     season_map = {
         "Kharif (खरीप)": "Kharif",
@@ -157,24 +166,21 @@ with col2:
     st.markdown('<div class="section-title">📊 Prediction | अंदाज</div>', unsafe_allow_html=True)
 
     if st.button("🌾 Predict Yield | उत्पादन अंदाज करा"):
+        # Encode inputs
+        crop_encoded = crop_encoding[crop]
+        state_encoded = state_encoding[state]
 
-        response = requests.post("http://localhost:8000/predict", json={
-    # send raw form values as dictionary
-    'crop': crop,
-    'season': season,
-    'state':state,
-    'year': year,
-    'rainfall': rainfall,
-    'area': area,
-    'fertilizer': fertilizer,
-    'pesticide': pesticide
-})
+        season_rabi = 1 if season == "Rabi" else 0
+        season_summer = 1 if season == "Summer" else 0
+        season_whole_year = 1 if season == "Whole Year" else 0
 
-        result = response.json()
+        input_data = np.array([[crop_encoded, year, state_encoded, area,
+                                rainfall, fertilizer, pesticide,
+                                season_rabi, season_summer, season_whole_year]])
 
-        predicted_yield = result["predicted_yield"]
-        total_production = result["total_production"]
-        total_quintals = result["total_quintals"]
+        predicted_yield = yield_model.predict(input_data)[0]
+        total_production = predicted_yield * area
+        total_quintals = total_production * 10
 
         st.markdown(f"""
         <div class="result-box">
