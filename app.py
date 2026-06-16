@@ -107,6 +107,7 @@ st.markdown("""
     .tip-box {
         background: #fff9e6;
         border: 1px solid #f39c12;
+        color: #000000;
         border-radius: 12px;
         padding: 1rem 1.2rem;
         margin-top: 1rem;
